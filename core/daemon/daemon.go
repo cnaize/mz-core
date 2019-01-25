@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Daemon struct {
@@ -67,15 +68,15 @@ func (d *Daemon) RefreshMediaDB() (*model.MediaRootList, error) {
 				return nil
 			}
 
-			dir, name, ext := ParseMediaPath(path)
-			if ext == model.MediaExtUnknown {
+			dir, name, ext, err := ParseMediaPath(path)
+			if err != nil {
 				return nil
 			}
 
 			var root *model.MediaRoot
 			for _, r := range rootList.Items {
-				if dir == r.Dir {
-					root = &r
+				if strings.HasPrefix(dir, r.Dir) {
+					root = r
 					break
 				}
 			}
@@ -85,9 +86,10 @@ func (d *Daemon) RefreshMediaDB() (*model.MediaRootList, error) {
 			}
 
 			media := model.Media{
-				Ext:         ext,
 				Name:        name,
-				Path:        path,
+				Ext:         ext,
+				Dir:         dir[len(root.Dir):],
+				Path:        strings.ToLower(path[len(root.Dir):]),
 				MediaRootID: root.ID,
 			}
 

@@ -29,8 +29,8 @@ func New(config Config) *Server {
 	{
 		media := v1.Group("/media")
 		{
-			//media.GET("/search/:text", s.handleSearchMedia)
 			media.POST("/refresh", s.handleRefreshMedia)
+			media.GET("/search/:text", s.handleSearchMedia)
 
 			roots := media.Group("/roots")
 			{

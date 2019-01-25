@@ -1,11 +1,12 @@
 package daemon
 
 import (
+	"fmt"
 	"github.com/cnaize/mz-common/model"
 	"path/filepath"
 )
 
-func ParseMediaPath(path string) (string, string, model.MediaExt) {
+func ParseMediaPath(path string) (string, string, model.MediaExt, error) {
 	dir, name := filepath.Split(path)
 
 	ext := model.MediaExtUnknown
@@ -16,7 +17,11 @@ func ParseMediaPath(path string) (string, string, model.MediaExt) {
 		}
 	}
 
+	if ext == model.MediaExtUnknown {
+		return "", "", ext, fmt.Errorf("Daemon: media extension %s doesn't supported yet", filepath.Ext(name))
+	}
+
 	name = name[:len(name)-len(ext)]
 
-	return dir, name, ext
+	return dir, name, ext, nil
 }

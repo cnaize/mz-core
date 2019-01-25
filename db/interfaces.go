@@ -8,10 +8,12 @@ type DB interface {
 
 type MediaProvider interface {
 	AddMedia(media *model.Media) error
-	RemoveAllMedia() error
 	SearchMedia(text string) (*model.MediaList, error)
+	RemoveAllMedia() error
 
 	GetMediaRootList() (*model.MediaRootList, error)
 	AddMediaRoot(root *model.MediaRoot) error
 	RemoveMediaRoot(root *model.MediaRoot) error
+
+	IsMediaItemNotFound(err error) bool
 }

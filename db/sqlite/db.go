@@ -29,16 +29,6 @@ func (db *DB) AddMedia(media *model.Media) error {
 	return db.db.Create(&media).Error
 }
 
-func (db *DB) RemoveAllMedia() error {
-	if err := db.db.DropTable(&model.Media{}).Error; err != nil {
-		return err
-	}
-
-	db.db.AutoMigrate(&model.Media{})
-
-	return nil
-}
-
 func (db *DB) SearchMedia(text string) (*model.MediaList, error) {
 	search := fmt.Sprintf("%%%s%%", strings.Join(strings.Split(text, " "), "%"))
 
@@ -48,6 +38,16 @@ func (db *DB) SearchMedia(text string) (*model.MediaList, error) {
 	}
 
 	return &res, nil
+}
+
+func (db *DB) RemoveAllMedia() error {
+	if err := db.db.DropTable(&model.Media{}).Error; err != nil {
+		return err
+	}
+
+	db.db.AutoMigrate(&model.Media{})
+
+	return nil
 }
 
 func (db *DB) GetMediaRootList() (*model.MediaRootList, error) {
@@ -69,6 +69,10 @@ func (db *DB) AddMediaRoot(root *model.MediaRoot) error {
 
 func (db *DB) RemoveMediaRoot(root *model.MediaRoot) error {
 	return db.db.Where("dir = ?", root.Dir).Error
+}
+
+func (db *DB) IsMediaItemNotFound(err error) bool {
+	return gorm.IsRecordNotFoundError(err)
 }
 
 func prepare(db *gorm.DB) {
