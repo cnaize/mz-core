@@ -35,7 +35,7 @@ func (d *Daemon) Run() error {
 	return nil
 }
 
-func (d *Daemon) RefreshMediaDB() (*model.MediaRootList, error) {
+func (d *Daemon) RefreshMediaDB() error {
 	db := d.config.DB
 
 	if d.stopRefresh != nil {
@@ -44,69 +44,92 @@ func (d *Daemon) RefreshMediaDB() (*model.MediaRootList, error) {
 	}
 
 	if err := db.RemoveAllMedia(); err != nil {
-		return nil, fmt.Errorf("all media remove failed: %+v", err)
+		return err
 	}
 
 	rootList, err := db.GetMediaRootList()
 	if err != nil {
-		return nil, fmt.Errorf("media root list get failed: %+v", err)
+		return err
 	}
 
 	d.stopRefresh = make(chan struct{})
 	stop := d.stopRefresh
 
-	walkFn := func(path string, info os.FileInfo, err error) error {
-		select {
-		case <-stop:
-			return fmt.Errorf("walk %s stopped", path)
-		default:
-			if err != nil {
-				log.Warn("Daemon: path %s: walk failed: %+v", path, err)
-				return nil
-			}
-			if info.IsDir() {
-				return nil
-			}
+	walk := func(root model.MediaRoot) {
+		if err := filepath.Walk(root.Dir, func(path string, info os.FileInfo, err error) error {
+			select {
+			case <-stop:
+				return fmt.Errorf("terminated")
+			default:
+				if err != nil {
+					log.Warn("Daemon: path %s: walk failed: %+v", path, err)
+					return nil
+				}
+				if info.IsDir() {
+					return nil
+				}
 
-			dir, name, ext, err := ParseMediaPath(path)
-			if err != nil {
-				return nil
-			}
+				dir, name, ext, err := parseMediaPath(path)
+				if err != nil {
+					return nil
+				}
 
-			var root *model.MediaRoot
-			for _, r := range rootList.Items {
-				if strings.HasPrefix(dir, r.Dir) {
-					root = r
-					break
+				for _, r := range rootList.Items {
+					if strings.HasPrefix(dir, r.Dir) && len(r.Dir) > len(root.Dir) {
+						return nil
+					}
+				}
+
+				media := model.Media{
+					Name:        name,
+					Ext:         ext,
+					Dir:         dir[len(root.Dir):],
+					RawPath:     strings.ToLower(path[len(root.Dir):]),
+					MediaRootID: root.ID,
+				}
+
+				if err := db.AddMedia(media); err != nil {
+					log.Warn("Daemon: media %s add failed: %+v", err)
+					return nil
 				}
 			}
-			if root == nil {
-				log.Warn("Daemon: path %s: out of roots", path)
-				return nil
-			}
 
-			media := model.Media{
-				Name:        name,
-				Ext:         ext,
-				Dir:         dir[len(root.Dir):],
-				Path:        strings.ToLower(path[len(root.Dir):]),
-				MediaRootID: root.ID,
-			}
-
-			if err := db.AddMedia(&media); err != nil {
-				log.Warn("Daemon: media %s add failed: %+v", err)
-				return nil
-			}
+			return nil
+		}); err != nil {
+			log.Info("Daemon: path %s: walk stopped: %+v", err)
 		}
-
-		return nil
 	}
 
 	for _, root := range rootList.Items {
-		go filepath.Walk(root.Dir, walkFn)
+		go walk(*root)
 	}
 
-	return rootList, nil
+	return nil
+}
+
+func parseMediaPath(path string) (string, string, model.MediaExt, error) {
+	dir, name := filepath.Split(path)
+
+	fileExt := filepath.Ext(name)
+	if fileExt == "" {
+		return "", "", "", fmt.Errorf("file in path %s has empty extension", path)
+	}
+
+	ext := model.MediaExtUnknown
+	for _, smt := range model.SupportedMediaExtList {
+		if fileExt[1:] == string(smt) {
+			ext = smt
+			break
+		}
+	}
+
+	if ext == model.MediaExtUnknown {
+		return "", "", "", fmt.Errorf("media with extension %s doesn't supported yet", fileExt)
+	}
+
+	name = name[:len(name)-len(ext)-1]
+
+	return dir, name, ext, nil
 }
 
 func (d *Daemon) loadSettings() error {

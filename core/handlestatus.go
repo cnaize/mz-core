@@ -8,6 +8,6 @@ import (
 
 func (s *Server) handleStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, model.CoreStatus{
-		Version: s.config.Daemon.Version,
+		Version: &s.config.Daemon.Version,
 	})
 }

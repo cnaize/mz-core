@@ -1,6 +1,9 @@
 package daemon
 
-import "github.com/cnaize/mz-core/db"
+import (
+	"github.com/cnaize/mz-common/model"
+	"github.com/cnaize/mz-core/db"
+)
 
 type Config struct {
 	Version       string
@@ -12,7 +15,7 @@ type Config struct {
 }
 
 type Settings struct {
-	MediaDirList []string `json:"mediaDirList"`
+	MediaRootList model.MediaRootList `json:"mediaRootList"`
 }
 
 func DefaultSettings() Settings {
