@@ -15,17 +15,27 @@ func (s *Server) handleSearchMedia(c *gin.Context) {
 	db := s.config.Daemon.DB
 	self := c.MustGet("currentUser").(*model.User)
 
-	var request model.SearchRequest
+	var in struct {
+		Offset uint `form:"offset"`
+		Count  uint `form:"count"`
+	}
+
+	c.ShouldBindQuery(&in)
+	if in.Count == 0 || in.Count >= model.MaxResponseItemsCount {
+		in.Count = model.MaxResponseItemsCount
+	}
+
 	// TODO: come back here again after sign up implementation
-	if err := c.ShouldBindQuery(&request); err != nil {
+	var inRequest model.SearchRequest
+	if err := c.ShouldBindQuery(&inRequest); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, model.SearchResponseList{
 			Error: &model.Error{Str: fmt.Sprintf("input parse failed: %+v", err)},
 		})
 		return
 	}
-	request.RawText = util.DecodeInStr(util.ParseInStr(request.Text))
+	inRequest.RawText = util.DecodeInStr(util.ParseInStr(inRequest.Text))
 
-	mediaList, err := db.SearchMedia(request)
+	mediaList, err := db.SearchMedia(inRequest, in.Offset, in.Count)
 	if err != nil {
 		if db.IsMediaItemNotFound(err) {
 			c.AbortWithStatusJSON(http.StatusOK, model.SearchResponseList{
@@ -40,15 +50,14 @@ func (s *Server) handleSearchMedia(c *gin.Context) {
 		return
 	}
 
-	res := model.SearchResponseList{
-		Request: &request,
-	}
+	var res model.SearchResponseList
 	for _, m := range mediaList.Items {
 		res.Items = append(res.Items, &model.SearchResponse{
-			Owner: self,
-			Media: m,
+			Owner: *self,
+			Media: *m,
 		})
 	}
+	res.AllItemsCount = mediaList.AllItemsCount
 
 	c.JSON(http.StatusOK, res)
 }
@@ -60,7 +69,7 @@ func (s *Server) handleRefreshMedia(c *gin.Context) {
 			return
 		}
 
-		log.Error("Server: media db refresh failed: %+v", err)
+		log.Warn("Server: media db refresh failed: %+v", err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
@@ -94,7 +103,7 @@ func (s *Server) handleAddMediaRoot(c *gin.Context) {
 
 	var inRoot model.MediaRoot
 	if err := c.ShouldBindJSON(&inRoot); err != nil {
-		log.Error("Server: media root add failed: %+v", err)
+		log.Warn("Server: media root add failed: %+v", err)
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
@@ -103,7 +112,7 @@ func (s *Server) handleAddMediaRoot(c *gin.Context) {
 	}
 
 	if err := db.AddMediaRoot(inRoot); err != nil {
-		log.Error("Server: media root add failed: %+v", err)
+		log.Warn("Server: media root add failed: %+v", err)
 		c.AbortWithStatus(http.StatusConflict)
 		return
 	}
@@ -116,15 +125,14 @@ func (s *Server) handleRemoveMediaRoot(c *gin.Context) {
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		log.Error("Server: media root remove failed: %+v", err)
+		log.Warn("Server: media root remove failed: %+v", err)
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	uid := uint(id)
 
-	root := model.MediaRoot{Base: model.Base{ID: &uid}}
+	root := model.MediaRoot{Base: model.Base{ID: uint(id)}}
 	if err := db.RemoveMediaRoot(root); err != nil {
-		log.Error("Server: media root remove failed: %+v", err)
+		log.Warn("Server: media root remove failed: %+v", err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}

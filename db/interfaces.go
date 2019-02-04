@@ -8,7 +8,7 @@ type DB interface {
 
 type MediaProvider interface {
 	AddMedia(media model.Media) error
-	SearchMedia(request model.SearchRequest) (model.MediaList, error)
+	SearchMedia(request model.SearchRequest, offset, count uint) (model.MediaList, error)
 	RemoveAllMedia() error
 
 	GetMediaRootList() (model.MediaRootList, error)

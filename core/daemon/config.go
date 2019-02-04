@@ -6,11 +6,11 @@ import (
 )
 
 type Config struct {
-	Version       string
 	WorkingDir    string
 	SettingsFile  string
 	DatabaseFile  string
 	CenterBaseURL string
+	CurrentUser   *model.User
 	DB            db.DB
 }
 

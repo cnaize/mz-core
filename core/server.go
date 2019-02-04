@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/cnaize/mz-common/log"
 	"github.com/cnaize/mz-core/core/daemon"
-	"github.com/cnaize/mz-core/core/middleware"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -26,11 +25,16 @@ func New(config Config) *Server {
 	}
 
 	r.GET("/", s.handleStatus)
-	v1 := r.Group("/v1", middleware.SetCurrentUser(config.Daemon.DB))
+	v1 := r.Group("/v1")
 	{
+		users := v1.Group("/users")
+		{
+			users.POST("", s.handleSetUser)
+		}
+
 		media := v1.Group("/media")
 		{
-			media.GET("/search", s.handleSearchMedia)
+			media.GET("/search", s.handleSetCurrentUser, s.handleSearchMedia)
 			media.POST("/refresh", s.handleRefreshMedia)
 
 			roots := media.Group("/roots")

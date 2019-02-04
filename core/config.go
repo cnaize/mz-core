@@ -5,6 +5,7 @@ import (
 )
 
 type Config struct {
-	Port   uint
-	Daemon daemon.Config
+	Port    uint
+	Version string
+	Daemon  daemon.Config
 }

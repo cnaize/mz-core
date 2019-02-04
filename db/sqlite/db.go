@@ -31,16 +31,19 @@ func (db *DB) AddMedia(media model.Media) error {
 	return db.db.Create(&media).Error
 }
 
-func (db *DB) SearchMedia(request model.SearchRequest) (model.MediaList, error) {
+func (db *DB) SearchMedia(request model.SearchRequest, offset, count uint) (model.MediaList, error) {
 	search := fmt.Sprintf("%%%s%%", strings.Join(strings.Split(request.RawText, " "), "%"))
 
 	var res model.MediaList
 	// TODO: change hardcoded "access_type" after sign up implementation
-	if err := db.db.Joins("INNER JOIN media_roots ON media_roots.id = media.media_root_id").
+	query := db.db.Joins("INNER JOIN media_roots ON media_roots.id = media.media_root_id").
 		Where("media_roots.access_type = ?", model.MediaAccessTypePublic).
-		Where("media.raw_path LIKE ?", search).Find(&res.Items).Error; err != nil {
+		Where("media.raw_path LIKE ?", search)
+	if err := query.Offset(offset).Limit(count).Find(&res.Items).Error; err != nil {
 		return res, err
 	}
+
+	query.Model(&model.Media{}).Count(&res.AllItemsCount)
 
 	return res, nil
 }
@@ -75,7 +78,7 @@ func (db *DB) AddMediaRoot(root model.MediaRoot) error {
 }
 
 func (db *DB) RemoveMediaRoot(root model.MediaRoot) error {
-	return db.db.Delete(model.MediaRoot{}, "id = ?", root.ID).Error
+	return db.db.Delete(&root).Error
 }
 
 func (db *DB) IsMediaItemNotFound(err error) bool {

@@ -16,7 +16,7 @@ var (
 )
 
 func init() {
-	coreConfig.Daemon.Version = MZCoreVersion
+	coreConfig.Version = MZCoreVersion
 
 	flag.UintVar(&loggerConfig.Lvl, "log-lvl", 5, "log level")
 

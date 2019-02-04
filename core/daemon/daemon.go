@@ -25,7 +25,7 @@ func New(config Config) *Daemon {
 }
 
 func (d *Daemon) Run() error {
-	log.Info("MuzeZone Core: running daemon with version: %s", d.config.Version)
+	log.Info("MuzeZone Core: running daemon")
 	//if err := d.loadSettings(); err != nil {
 	//	if err := d.saveSettings(); err != nil {
 	//		log.Warn("Daemon: settings save failed: %+v", err)
