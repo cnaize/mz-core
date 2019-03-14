@@ -29,12 +29,12 @@ func New(config Config) *Server {
 	{
 		users := v1.Group("/users")
 		{
-			users.POST("", s.handleSetUser)
+			users.POST("/set", s.handleSetCurrentUser)
 		}
 
-		media := v1.Group("/media")
+		media := v1.Group("/media", s.handleSetUser)
 		{
-			media.GET("/search", s.handleSetCurrentUser, s.handleSearchMedia)
+			media.GET("/search", s.handleSearchMedia)
 			media.POST("/refresh", s.handleRefreshMedia)
 
 			roots := media.Group("/roots")

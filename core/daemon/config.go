@@ -10,7 +10,7 @@ type Config struct {
 	SettingsFile  string
 	DatabaseFile  string
 	CenterBaseURL string
-	CurrentUser   *model.User
+	CurrentUser   model.User
 	DB            db.DB
 }
 
