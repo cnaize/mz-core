@@ -22,7 +22,8 @@ type Media struct {
 	Base
 	Name        string   `json:"name" form:"name" binding:"required"`
 	Ext         MediaExt `json:"ext" form:"ext" binding:"required"`
-	Dir         string   `json:"dir" form:"dir" binding:"required"`
+	Dir         string   `json:"dir" form:"dir"`
+	CoreSideID  uint     `json:"coreSideID" form:"name" binding:"required"`
 	MediaRootID uint     `json:"rootID" gorm:"not_null" form:"rootID" binding:"required"`
 	RawPath     string   `json:"-"` // lower path, used for search
 }

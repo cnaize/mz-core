@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) handleSetCurrentUser(c *gin.Context) {
+func (s *Server) handleSetUser(c *gin.Context) {
 	var in struct {
 		Username string `json:"username" form:"username" binding:"required"`
 		Token    string `json:"token" form:"token" binding:"required"`
@@ -21,8 +21,9 @@ func (s *Server) handleSetCurrentUser(c *gin.Context) {
 
 	user := model.User{
 		Username: in.Username,
-		Token: in.Token,
+		Token:    in.Token,
 	}
+	log.Debug("Server: Daemon: user set: %s", user.Username)
 
 	if err := s.daemon.StartMediaFeed(user); err != nil {
 		log.Error("Server: Daemon: media feed start failed: %+v", err)
@@ -31,11 +32,11 @@ func (s *Server) handleSetCurrentUser(c *gin.Context) {
 	c.Status(http.StatusAccepted)
 }
 
-func (s *Server) handleSetUser(c *gin.Context) {
-	user := s.config.Daemon.CurrentUser
+func (s *Server) handleCheckUser(c *gin.Context) {
+	user := s.daemon.CurrentUser
 
 	if user.Username == "" || user.Token == "" {
-		log.Warn("Server: user set failed: current user is empty")
+		log.Warn("Server: user set failed: current user is empty: %#v", user)
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}

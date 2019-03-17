@@ -31,14 +31,31 @@ func (db *DB) AddMedia(media model.Media) error {
 	return db.db.Create(&media).Error
 }
 
-func (db *DB) SearchMedia(request model.SearchRequest, offset, count uint) (model.MediaList, error) {
-	search := fmt.Sprintf("%%%s%%", strings.Join(strings.Split(request.RawText, " "), "%"))
-
+func (db *DB) SearchMedia(mode model.MediaAccessType, request model.SearchRequest, offset, count uint) (model.MediaList, error) {
 	var res model.MediaList
-	// TODO: change hardcoded "access_type" after sign up implementation
+	searchFields := strings.Fields(request.RawText)
+	if len(searchFields) < 1 {
+		return res, nil
+	}
+
+	if strings.HasPrefix(searchFields[0], "@") {
+		searchFields[0] = searchFields[0] + "/"
+	}
+
+	search := fmt.Sprintf("%%%s%%", strings.Join(searchFields, "%"))
+
 	query := db.db.Joins("INNER JOIN media_roots ON media_roots.id = media.media_root_id").
-		Where("media_roots.access_type = ?", model.MediaAccessTypePublic).
+		Where("media_roots.access_type = ?", mode).
 		Where("media.raw_path LIKE ?", search)
+
+	// "protected" includes "public, "private" includes "public" and "protected"
+	if mode == model.MediaAccessTypeProtected || mode == model.MediaAccessTypePrivate {
+		query = query.Where("media_roots.access_type = ?", model.MediaAccessTypePublic)
+	}
+	if mode == model.MediaAccessTypePrivate {
+		query = query.Where("media_roots.access_type = ?", model.MediaAccessTypeProtected)
+	}
+
 	if err := query.Offset(offset).Limit(count).Find(&res.Items).Error; err != nil {
 		return res, err
 	}
@@ -86,8 +103,6 @@ func (db *DB) IsMediaItemNotFound(err error) bool {
 }
 
 func prepare(db *gorm.DB) error {
-	db.LogMode(true)
-
 	if err := db.AutoMigrate(&model.MediaRoot{}).Error; err != nil {
 		return err
 	}

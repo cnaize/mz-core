@@ -10,11 +10,12 @@ import (
 )
 
 func (d *Daemon) RefreshMediaDB() error {
-	db := d.config.DB
+	db := d.DB
+	user := d.CurrentUser
 
-	if d.stopRefresh != nil {
-		close(d.stopRefresh)
-		d.stopRefresh = nil
+	if d.stopMediaRefresh != nil {
+		close(d.stopMediaRefresh)
+		d.stopMediaRefresh = nil
 	}
 
 	if err := db.RemoveAllMedia(); err != nil {
@@ -26,8 +27,8 @@ func (d *Daemon) RefreshMediaDB() error {
 		return err
 	}
 
-	d.stopRefresh = make(chan struct{})
-	stop := d.stopRefresh
+	d.stopMediaRefresh = make(chan struct{})
+	stop := d.stopMediaRefresh
 
 	walk := func(root model.MediaRoot) {
 		if err := filepath.Walk(root.Dir, func(path string, info os.FileInfo, err error) error {
@@ -54,12 +55,12 @@ func (d *Daemon) RefreshMediaDB() error {
 					}
 				}
 
+				rawPath := strings.ToLower(fmt.Sprintf("@%s/%s", user.Username, path[len(root.Dir):]))
 				media := model.Media{
 					Name:        name,
 					Ext:         ext,
 					Dir:         dir[len(root.Dir):],
-					// TODO: add username as prefix after singup implementation
-					RawPath:     strings.ToLower(path[len(root.Dir):]),
+					RawPath:     rawPath,
 					MediaRootID: root.ID,
 				}
 

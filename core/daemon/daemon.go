@@ -3,19 +3,29 @@ package daemon
 import (
 	"encoding/json"
 	"github.com/cnaize/mz-common/log"
+	"github.com/cnaize/mz-common/model"
+	"github.com/cnaize/mz-core/db"
+	"github.com/parnurzeal/gorequest"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type Daemon struct {
-	config      Config
-	settings    Settings
-	stopRefresh chan struct{}
+	DB               db.DB
+	CurrentUser      model.User
+	config           Config
+	baseReq          *gorequest.SuperAgent
+	running          bool
+	searchReqOffset  uint
+	stopMediaRefresh chan struct{}
+	settings         Settings
 }
 
-func New(config Config) *Daemon {
+func New(config Config, db db.DB) *Daemon {
 	return &Daemon{
+		DB:       db,
 		config:   config,
 		settings: DefaultSettings(),
 	}
@@ -23,6 +33,9 @@ func New(config Config) *Daemon {
 
 func (d *Daemon) Run() error {
 	log.Info("MuzeZone Core: running daemon")
+
+	d.baseReq = gorequest.New().Timeout(500 * time.Millisecond)
+
 	//if err := d.loadSettings(); err != nil {
 	//	if err := d.saveSettings(); err != nil {
 	//		log.Warn("Daemon: settings save failed: %+v", err)

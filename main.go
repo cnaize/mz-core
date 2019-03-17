@@ -5,6 +5,7 @@ import (
 	"github.com/cnaize/mz-common/log"
 	"github.com/cnaize/mz-core/core"
 	"github.com/cnaize/mz-core/db/sqlite"
+	"os"
 	"path/filepath"
 )
 
@@ -32,13 +33,16 @@ func main() {
 	flag.Parse()
 	log.Init(loggerConfig)
 
+	if coreConfig.Version == "" {
+		coreConfig.Version = os.Getenv("MZ_CORE_VERSION")
+	}
+
 	db, err := sqlite.New(filepath.Join(coreConfig.Daemon.WorkingDir, coreConfig.Daemon.DatabaseFile))
 	if err != nil {
 		log.Fatal("MuzeZone Core: db open failed: %+v", err)
 	}
-	coreConfig.Daemon.DB = db
 
-	if err := core.New(coreConfig).Run(); err != nil {
+	if err := core.New(coreConfig, db).Run(); err != nil {
 		log.Fatal("MuzeZone Core: core run failed %+v", err)
 	}
 }

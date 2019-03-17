@@ -24,9 +24,6 @@
 #   go-tests = true
 #   unused-packages = true
 
-[metadata.heroku]
-  root-package = "github.com/cnaize/mz-core"
-  ensure = "false"
 
 [[constraint]]
   branch = "master"
@@ -43,6 +40,10 @@
 [[constraint]]
   name = "github.com/jinzhu/gorm"
   version = "1.9.2"
+
+[[constraint]]
+  branch = "develop"
+  name = "github.com/parnurzeal/gorequest"
 
 [prune]
   go-tests = true
