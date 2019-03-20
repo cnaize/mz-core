@@ -1,9 +1,9 @@
 package model
 
 type CenterStatus struct {
-	MinCoreVersion *string `json:"minCoreVersion,omitempty" form:"minCoreVersion"`
+	MinCoreVersion string `json:"minCoreVersion" form:"minCoreVersion"`
 }
 
 type CoreStatus struct {
-	Version *string `json:"version,omitempty" form:"version"`
+	Version string `json:"version" form:"version"`
 }

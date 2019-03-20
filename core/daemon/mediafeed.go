@@ -5,7 +5,6 @@ import (
 	"github.com/cnaize/mz-common/log"
 	"github.com/cnaize/mz-common/model"
 	"github.com/cnaize/mz-common/util"
-	"math"
 	"net/http"
 	"time"
 )
@@ -23,6 +22,7 @@ func (d *Daemon) StartMediaFeed(user model.User) error {
 }
 
 func (d *Daemon) mediaFeedLoop() {
+	log.Info("Daemon: media feed loop run")
 	for {
 		d.handleSearchRequestList()
 		time.Sleep(1 * time.Second)
@@ -36,7 +36,7 @@ func (d *Daemon) handleSearchRequestList() {
 	resp, _, errs := req.Get(fmt.Sprintf("%s/v1/searches/requests?offset=%d&count=%d",
 		d.config.CenterBaseURL, d.searchReqOffset, model.MaxRequestItemsPerRequestCount)).
 		EndStruct(&res)
-	if resp != nil && resp.StatusCode == http.StatusNotFound {
+	if resp != nil && resp.StatusCode == http.StatusNotFound || len(res.Items) == 0 {
 		d.searchReqOffset = 0
 		log.Debug("Daemon: search request list handle: empty list")
 		return
@@ -50,11 +50,11 @@ func (d *Daemon) handleSearchRequestList() {
 	for _, r := range res.Items {
 		r := *r
 
-		go d.handleSearchRequest(model.MediaAccessTypePublic, r)
+		go d.handleSearchRequest(r)
 	}
 }
 
-func (d *Daemon) handleSearchRequest(mode model.MediaAccessType, request model.SearchRequest) {
+func (d *Daemon) handleSearchRequest(request model.SearchRequest) {
 	db := d.DB
 	req := d.baseReq.Clone()
 	user := model.User{
@@ -63,7 +63,7 @@ func (d *Daemon) handleSearchRequest(mode model.MediaAccessType, request model.S
 
 	request.RawText = util.DecodeInStr(util.ParseInStr(request.Text))
 
-	mediaList, err := db.SearchMedia(mode, request, 0, math.MaxUint32)
+	mediaList, err := db.SearchMedia(request, 0, 1001)
 	if err != nil {
 		if !db.IsMediaItemNotFound(err) {
 			log.Warn("Daemon: search request handle failed: %+v", err)
@@ -90,8 +90,8 @@ func (d *Daemon) handleSearchRequest(mode model.MediaAccessType, request model.S
 		responseList.Items = append(responseList.Items, &resp)
 	}
 
-	resp, _, errs := req.Post(fmt.Sprintf("%s/v1/searches/responses?text=%s",
-		d.config.CenterBaseURL, request.Text)).
+	resp, _, errs := req.Post(fmt.Sprintf("%s/v1/searches/responses?mode=%s&text=%s",
+		d.config.CenterBaseURL, request.Mode, request.Text)).
 		Type("json").
 		SendStruct(&responseList).
 		End()

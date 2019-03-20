@@ -7,10 +7,10 @@ import (
 
 type User struct {
 	Base
-	Username  string     `json:"username" gorm:"unique_index"`
+	Username  string     `json:"username" form:"-" gorm:"unique_index"`
 	Token     string     `json:"token" form:"token"`
-	PassHash  string     `json:"-"`
-	DeletedAt *time.Time `json:"-"`
+	PassHash  string     `json:"-" form:"-"`
+	DeletedAt *time.Time `json:"-" form:"-"`
 }
 
 type Token struct {

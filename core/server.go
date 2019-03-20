@@ -42,7 +42,7 @@ func New(config Config, db db.DB) *Server {
 
 		media := v1.Group("/media", s.handleCheckUser)
 		{
-			media.GET("/search", s.handleSearchMedia)
+			//media.GET("/search", s.handleSearchMedia)
 			media.POST("/refresh", s.handleRefreshMedia)
 
 			roots := media.Group("/roots")

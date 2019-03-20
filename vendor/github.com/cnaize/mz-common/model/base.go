@@ -5,7 +5,7 @@ import (
 )
 
 type Base struct {
-	ID        uint      `json:"id,omitempty" gorm:"primary_key" form:"id"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
+	ID        uint      `json:"-" form:"-" gorm:"primary_key"`
+	CreatedAt time.Time `json:"-" form:"-"`
+	UpdatedAt time.Time `json:"-" form:"-"`
 }

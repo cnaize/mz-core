@@ -1,5 +1,5 @@
 package model
 
 type Error struct {
-	Str string `json:"str"`
+	Str string `json:"str" form:"str"`
 }

@@ -9,7 +9,7 @@
     "model",
     "util"
   ]
-  revision = "3d273ed17816a0d499f4dfcf2832f036ebad30e2"
+  revision = "3e780238dec07b51679f97f7d8794a757fb6e2f2"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -140,7 +140,7 @@
     "idna",
     "publicsuffix"
   ]
-  revision = "9f648a60d9775ef5c977e7669d1673a7a67bef33"
+  revision = "1272bf9dcd53ea65c09668fb4c76e65deb740072"
 
 [[projects]]
   branch = "master"
@@ -149,7 +149,7 @@
     "unix",
     "windows"
   ]
-  revision = "a2f829d7f35f2ed1c3520c553a6226495455cae0"
+  revision = "6c81ef8f67ca3f42fc9cd71dfbd5f35b0c4b5771"
 
 [[projects]]
   name = "golang.org/x/text"

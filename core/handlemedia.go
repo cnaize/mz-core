@@ -3,59 +3,11 @@ package core
 import (
 	"github.com/cnaize/mz-common/log"
 	"github.com/cnaize/mz-common/model"
-	"github.com/cnaize/mz-common/util"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"strings"
 )
-
-func (s *Server) handleSearchMedia(c *gin.Context) {
-	db := s.daemon.DB
-	user := c.MustGet("user").(model.User)
-
-	var in struct {
-		Offset uint `form:"offset"`
-		Count  uint `form:"count"`
-	}
-
-	c.ShouldBindQuery(&in)
-	if in.Count == 0 || in.Count >= model.MaxResponseItemsCount {
-		in.Count = model.MaxResponseItemsCount
-	}
-
-	// TODO: come back here again after sign up implementation
-	var inRequest model.SearchRequest
-	if err := c.ShouldBindQuery(&inRequest); err != nil {
-		log.Warn("Server: media search failed: %+v", err)
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-	inRequest.RawText = util.DecodeInStr(util.ParseInStr(inRequest.Text))
-
-	mediaList, err := db.SearchMedia(model.MediaAccessTypePrivate, inRequest, in.Offset, in.Count)
-	if err != nil {
-		if db.IsMediaItemNotFound(err) {
-			c.AbortWithStatus(http.StatusNotFound)
-			return
-		}
-
-		log.Error("Server: media search failed: %+v", err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	var res model.SearchResponseList
-	for _, m := range mediaList.Items {
-		res.Items = append(res.Items, &model.SearchResponse{
-			Owner: user,
-			Media: *m,
-		})
-	}
-	res.AllItemsCount = mediaList.AllItemsCount
-
-	c.JSON(http.StatusOK, res)
-}
 
 func (s *Server) handleRefreshMedia(c *gin.Context) {
 	db := s.daemon.DB
@@ -139,3 +91,50 @@ func (s *Server) handleRemoveMediaRoot(c *gin.Context) {
 
 	c.JSON(http.StatusOK, nil)
 }
+
+//func (s *Server) handleSearchMedia(c *gin.Context) {
+//	db := s.daemon.DB
+//	user := c.MustGet("user").(model.User)
+//
+//	var in struct {
+//		Offset uint `form:"offset"`
+//		Count  uint `form:"count"`
+//	}
+//
+//	c.ShouldBindQuery(&in)
+//	if in.Count == 0 || in.Count >= model.MaxResponseItemsCount {
+//		in.Count = model.MaxResponseItemsCount
+//	}
+//
+//	// TODO: come back here again after sign up implementation
+//	var inRequest model.SearchRequest
+//	if err := c.ShouldBindQuery(&inRequest); err != nil {
+//		log.Warn("Server: media search failed: %+v", err)
+//		c.AbortWithStatus(http.StatusBadRequest)
+//		return
+//	}
+//	inRequest.RawText = util.DecodeInStr(util.ParseInStr(inRequest.Text))
+//
+//	mediaList, err := db.SearchMedia(model.MediaAccessTypePrivate, inRequest, in.Offset, in.Count)
+//	if err != nil {
+//		if db.IsMediaItemNotFound(err) {
+//			c.AbortWithStatus(http.StatusNotFound)
+//			return
+//		}
+//
+//		log.Error("Server: media search failed: %+v", err)
+//		c.AbortWithStatus(http.StatusInternalServerError)
+//		return
+//	}
+//
+//	var res model.SearchResponseList
+//	for _, m := range mediaList.Items {
+//		res.Items = append(res.Items, &model.SearchResponse{
+//			Owner: user,
+//			Media: *m,
+//		})
+//	}
+//	res.AllItemsCount = mediaList.AllItemsCount
+//
+//	c.JSON(http.StatusOK, res)
+//}
