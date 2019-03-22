@@ -30,7 +30,6 @@ func (d *Daemon) handleMediaRequestList() {
 	var res model.MediaRequestList
 	resp, _, errs := req.Get(fmt.Sprintf("%s/v1/media/requests", d.config.CenterBaseURL)).EndStruct(&res)
 	if (resp != nil && resp.StatusCode == http.StatusNotFound) || len(res.Items) == 0 {
-		log.Debug("Daemon: media request list handle: empty list")
 		return
 	}
 	if errs != nil {
@@ -53,10 +52,7 @@ func (d *Daemon) handleMediaRequest(request model.MediaRequest) {
 	//  check if we have connections count > limit
 
 	response := model.MediaResponse{
-		User: request.User,
-		Owner: model.User{Username: d.CurrentUser.Username},
-		Media: request.Media,
-		Mode: request.Mode,
+		MediaRequest: request,
 	}
 
 	defer func() {

@@ -26,7 +26,6 @@ func (d *Daemon) handleSearchRequestList() {
 		EndStruct(&res)
 	if (resp != nil && resp.StatusCode == http.StatusNotFound) || len(res.Items) == 0 {
 		d.searchReqOffset = 0
-		log.Debug("Daemon: search request list handle: empty list")
 		return
 	}
 	if errs != nil {

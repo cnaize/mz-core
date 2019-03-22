@@ -47,7 +47,7 @@ type MediaRootList struct {
 type MediaRequest struct {
 	Base
 	User      User            `json:"user" form:"-"`
-	Owner     User            `json:"owner" form:"owner" binding:"required,dive"`
+	Owner     User            `json:"owner" form:"owner"`
 	Media     Media           `json:"media" form:"media" binding:"required,dive"`
 	Mode      MediaAccessType `json:"mode" form:"mode"`
 	WebRTCKey string          `json:"webRTCKey" form:"webRTCKey" binding:"required"`
@@ -62,15 +62,10 @@ type MediaRequestList struct {
 
 type MediaResponse struct {
 	Base
-	User      User            `json:"user" form:"user" binding:"required,dive"`
-	Owner     User            `json:"owner" form:"-"`
-	Media     Media           `json:"media" form:"media" binding:"required,dive"`
-	Mode      MediaAccessType `json:"mode" form:"mode"`
-	WebRTCKey string          `json:"webRTCKey" form:"webRTCKey" binding:"required"`
-	Error     *Error          `json:"error,omitempty" form:"error"`
-	UserID    uint            `json:"-" form:"-"`
-	OwnerID   uint            `json:"-" form:"-"`
-	MediaID   uint            `json:"-" form:"-"`
+	MediaRequest   MediaRequest `json:"request" form:"request" binding:"required,dive"`
+	WebRTCKey      string       `json:"webRTCKey" form:"webRTCKey" binding:"required"`
+	Error          *Error       `json:"error,omitempty" form:"error"`
+	MediaRequestID uint         `json:"-" form:"-"`
 }
 
 type MediaResponseList struct {

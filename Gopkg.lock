@@ -9,7 +9,7 @@
     "model",
     "util"
   ]
-  revision = "10a87e797b1547ba7dbb459789fd682d4f2ff30c"
+  revision = "dcb974e6974a10b945bbbe3e16f86af5f9effc88"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
