@@ -67,7 +67,7 @@ type MediaResponse struct {
 	Media     Media           `json:"media" form:"media" binding:"required,dive"`
 	Mode      MediaAccessType `json:"mode" form:"mode"`
 	WebRTCKey string          `json:"webRTCKey" form:"webRTCKey" binding:"required"`
-	Error     *Error          `json:"error,omitempty" form:"error" binding:"dive"`
+	Error     *Error          `json:"error,omitempty" form:"error"`
 	UserID    uint            `json:"-" form:"-"`
 	OwnerID   uint            `json:"-" form:"-"`
 	MediaID   uint            `json:"-" form:"-"`

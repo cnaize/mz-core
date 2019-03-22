@@ -15,8 +15,7 @@ type SearchRequest struct {
 }
 
 type SearchRequestList struct {
-	Items         []*SearchRequest `json:"items" form:"items"`
-	AllItemsCount *uint            `json:"allItemsCount,omitempty" form:"allItemsCount"`
+	Items []*SearchRequest `json:"items" form:"items"`
 }
 
 type SearchResponse struct {
@@ -29,6 +28,5 @@ type SearchResponse struct {
 }
 
 type SearchResponseList struct {
-	Items         []*SearchResponse `json:"items" form:"items" binding:"required,dive"`
-	AllItemsCount *uint             `json:"allItemsCount,omitempty" form:"allItemsCount"`
+	Items []*SearchResponse `json:"items" form:"items" binding:"required,dive"`
 }

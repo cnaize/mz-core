@@ -6,9 +6,11 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"strings"
+	"sync"
 )
 
 type DB struct {
+	sync.Mutex
 	db *gorm.DB
 }
 
@@ -27,11 +29,29 @@ func New(filepath string) (*DB, error) {
 	}, nil
 }
 
+func (db *DB) GetMediaByID(id uint) (model.Media, error) {
+	db.Lock()
+	defer db.Unlock()
+
+	var res model.Media
+	if err := db.db.First(&res, id).Error; err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
 func (db *DB) AddMedia(media model.Media) error {
+	db.Lock()
+	defer db.Unlock()
+
 	return db.db.Create(&media).Error
 }
 
 func (db *DB) SearchMedia(request model.SearchRequest, offset, count uint) (model.MediaList, error) {
+	db.Lock()
+	defer db.Unlock()
+
 	var res model.MediaList
 	searchFields := strings.Fields(request.RawText)
 	if len(searchFields) < 1 {
@@ -65,6 +85,9 @@ func (db *DB) SearchMedia(request model.SearchRequest, offset, count uint) (mode
 }
 
 func (db *DB) RemoveAllMedia() error {
+	db.Lock()
+	defer db.Unlock()
+
 	if err := db.db.DropTable(&model.Media{}).Error; err != nil {
 		return err
 	}
@@ -77,6 +100,9 @@ func (db *DB) RemoveAllMedia() error {
 }
 
 func (db *DB) GetMediaRootList() (model.MediaRootList, error) {
+	db.Lock()
+	defer db.Unlock()
+
 	var res model.MediaRootList
 	if err := db.db.Find(&res.Items).Error; err != nil {
 		return res, err
@@ -90,10 +116,16 @@ func (db *DB) GetMediaRootList() (model.MediaRootList, error) {
 }
 
 func (db *DB) AddMediaRoot(root model.MediaRoot) error {
+	db.Lock()
+	defer db.Unlock()
+
 	return db.db.Create(&root).Error
 }
 
 func (db *DB) RemoveMediaRoot(root model.MediaRoot) error {
+	db.Lock()
+	defer db.Unlock()
+
 	return db.db.Delete(&root).Error
 }
 

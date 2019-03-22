@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
 
@@ -17,7 +18,7 @@ type Daemon struct {
 	CurrentUser      model.User
 	config           Config
 	baseReq          *gorequest.SuperAgent
-	running          bool
+	runOnce          sync.Once
 	searchReqOffset  uint
 	stopMediaRefresh chan struct{}
 	settings         Settings
@@ -41,6 +42,18 @@ func (d *Daemon) Run() error {
 	//		log.Warn("Daemon: settings save failed: %+v", err)
 	//	}
 	//}
+
+	return nil
+}
+
+func (d *Daemon) StartFeedLoop(user model.User) error {
+	d.CurrentUser = user
+	d.baseReq.Set("Authorization", "Bearer "+user.Token)
+
+	d.runOnce.Do(func() {
+		go d.searchFeedLoop()
+		go d.mediaFeedLoop()
+	})
 
 	return nil
 }

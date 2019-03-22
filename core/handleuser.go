@@ -25,8 +25,8 @@ func (s *Server) handleSetUser(c *gin.Context) {
 	}
 	log.Debug("Server: Daemon: user set: %s", user.Username)
 
-	if err := s.daemon.StartMediaFeed(user); err != nil {
-		log.Error("Server: Daemon: media feed start failed: %+v", err)
+	if err := s.daemon.StartFeedLoop(user); err != nil {
+		log.Error("Server: Daemon: feed loop start failed: %+v", err)
 	}
 
 	c.Status(http.StatusAccepted)

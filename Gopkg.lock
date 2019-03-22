@@ -9,7 +9,7 @@
     "model",
     "util"
   ]
-  revision = "3e780238dec07b51679f97f7d8794a757fb6e2f2"
+  revision = "10a87e797b1547ba7dbb459789fd682d4f2ff30c"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -110,6 +110,43 @@
   revision = "b0604454e3c35c21d4c86e4771dc1e24c896cdd3"
 
 [[projects]]
+  name = "github.com/pions/dtls"
+  packages = [
+    "pkg/dtls",
+    "pkg/dtls/internal/udp"
+  ]
+  revision = "26f587e06ed18c66b388cf537b80f6f8e3c4365f"
+  version = "v1.0.2"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/pions/pkg"
+  packages = ["stun"]
+  revision = "f0a98342fda84db0c7c1dd65ac227945763b3d0c"
+
+[[projects]]
+  name = "github.com/pions/webrtc"
+  packages = [
+    ".",
+    "internal/datachannel",
+    "internal/mux",
+    "internal/network",
+    "internal/sctp",
+    "internal/sdp",
+    "internal/srtp",
+    "internal/util",
+    "pkg/datachannel",
+    "pkg/ice",
+    "pkg/media",
+    "pkg/rtcerr",
+    "pkg/rtcp",
+    "pkg/rtp",
+    "pkg/rtp/codecs"
+  ]
+  revision = "7d19be0bca79fa3660a90a846f9d5ec3a53e12b7"
+  version = "v1.2.0"
+
+[[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
@@ -130,17 +167,24 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
-  revision = "a1f597ede03a7bef967a422b5b3a5bd08805a01e"
+  packages = [
+    "curve25519",
+    "ssh/terminal"
+  ]
+  revision = "b7391e95e576cacdcdd422573063bc057239113d"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = [
+    "bpf",
     "idna",
+    "internal/iana",
+    "internal/socket",
+    "ipv4",
     "publicsuffix"
   ]
-  revision = "1272bf9dcd53ea65c09668fb4c76e65deb740072"
+  revision = "addf6b3196f61cd44ce5a76657913698c73479d0"
 
 [[projects]]
   branch = "master"
@@ -149,7 +193,7 @@
     "unix",
     "windows"
   ]
-  revision = "6c81ef8f67ca3f42fc9cd71dfbd5f35b0c4b5771"
+  revision = "f49334f85ddcf0f08d7fb6dd7363e9e6d6b777eb"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -187,6 +231,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9b0c8d9d4c5c7ba3ddf6013a31aba334cc743664555125daca0db8b9ee09fcb8"
+  inputs-digest = "3dc7fc434f74aa51f6d9a3f232904dd5f531afd37c2f7d54742869b28f8129cc"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -42,7 +42,6 @@ func New(config Config, db db.DB) *Server {
 
 		media := v1.Group("/media", s.handleCheckUser)
 		{
-			//media.GET("/search", s.handleSearchMedia)
 			media.POST("/refresh", s.handleRefreshMedia)
 
 			roots := media.Group("/roots")
@@ -63,7 +62,7 @@ func (s *Server) Run() error {
 	}
 
 	// TODO: REMOVE IT!!!
-	s.daemon.StartMediaFeed(model.User{
+	s.daemon.StartFeedLoop(model.User{
 		Username: "ni",
 		Token:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VybmFtZSI6Im5pIn0.E04Xxz7ROycss7bo8mGQ8BHZd4_lGIbAc4H9wlXTAIY",
 	})
