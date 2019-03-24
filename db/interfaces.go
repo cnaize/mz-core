@@ -13,6 +13,7 @@ type MediaProvider interface {
 	SearchMedia(request model.SearchRequest, offset, count uint) (model.MediaList, error)
 	RemoveAllMedia() error
 
+	GetMediaRootByID(id uint) (model.MediaRoot, error)
 	GetMediaRootList() (model.MediaRootList, error)
 	AddMediaRoot(root model.MediaRoot) error
 	RemoveMediaRoot(root model.MediaRoot) error

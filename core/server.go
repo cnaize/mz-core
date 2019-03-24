@@ -64,7 +64,7 @@ func (s *Server) Run() error {
 	// TODO: REMOVE IT!!!
 	s.daemon.StartFeedLoop(model.User{
 		Username: "ni",
-		Token:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VybmFtZSI6Im5pIn0.E04Xxz7ROycss7bo8mGQ8BHZd4_lGIbAc4H9wlXTAIY",
+		Token:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VybmFtZSI6Im5pIn0.NGN7R9p3RYVjcBnTiRlFUqzGig1UL5aOMFhCQCCpHQY",
 	})
 
 	log.Info("MuzeZone Core: running server on port: %d", s.config.Port)

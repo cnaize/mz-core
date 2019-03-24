@@ -2,6 +2,18 @@ package sqlite
 
 import "github.com/cnaize/mz-common/model"
 
+func (db *DB) GetMediaRootByID(id uint) (model.MediaRoot, error) {
+	db.Lock()
+	defer db.Unlock()
+
+	var res model.MediaRoot
+	if err := db.db.First(&res, id).Error; err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
 func (db *DB) GetMediaRootList() (model.MediaRootList, error) {
 	db.Lock()
 	defer db.Unlock()

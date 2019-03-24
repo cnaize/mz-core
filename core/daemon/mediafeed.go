@@ -12,10 +12,6 @@ import (
 	"time"
 )
 
-type peerConnection struct {
-
-}
-
 func (d *Daemon) mediaFeedLoop() {
 	log.Info("Daemon: media feed loop run")
 	for {
@@ -66,9 +62,43 @@ func (d *Daemon) handleMediaRequest(request model.MediaRequest) {
 		}
 	}()
 
-	if _, err := db.GetMediaByID(request.Media.CoreSideID); err != nil {
+	if request.Owner.Username != d.CurrentUser.Username {
+		errStr := fmt.Sprintf("request owner and current user mismatch: %s != %s",
+			request.Owner.Username, d.CurrentUser.Username)
+		log.Error("Daemon: " + errStr)
+		response.Error = &model.Error{Str: errStr}
+		return
+	}
+
+	// TODO:
+	//  handle "protected" mode
+
+	if request.Mode == model.MediaAccessTypePrivate && request.User.Username != d.CurrentUser.Username {
+		errStr := fmt.Sprintf("media owner %s: access denied for user %s",
+			d.CurrentUser.Username, request.User.Username)
+		log.Error("Daemon: " + errStr)
+		response.Error = &model.Error{Str: errStr}
+		return
+	}
+
+	media, err := db.GetMediaByID(request.Media.CoreSideID)
+	if err != nil {
 		log.Error("Daemon: media request handle failed: %+v", err)
 		response.Error = &model.Error{Str: err.Error()}
+		return
+	}
+	mediaRoot, err := db.GetMediaRootByID(media.MediaRootID)
+	if err != nil {
+		log.Error("Daemon: media request handle failed: %+v", err)
+		response.Error = &model.Error{Str: err.Error()}
+		return
+	}
+
+	if request.Mode != mediaRoot.AccessType {
+		errStr := fmt.Sprintf("request mode and media root access type mismatch: %s != %s",
+			request.Mode, mediaRoot.AccessType)
+		log.Error("Daemon: " + errStr)
+		response.Error = &model.Error{Str: errStr}
 		return
 	}
 
@@ -95,19 +125,6 @@ func (d *Daemon) handleMediaRequest(request model.MediaRequest) {
 		return
 	}
 
-	// Set the handler for ICE connection state
-	// This will notify you when the peer has connected/disconnected
-	pc.OnICEConnectionStateChange(func(connectionState ice.ConnectionState) {
-		if connectionState == ice.ConnectionStateCompleted ||
-			connectionState == ice.ConnectionStateFailed ||
-			connectionState == ice.ConnectionStateDisconnected ||
-			connectionState == ice.ConnectionStateClosed {
-			// TODO:
-			//  do something?
-		}
-		log.Info("Daemon: peer connection state changed: %s", connectionState.String())
-	})
-
 	// Create a audio track
 	opusTrack, err := pc.NewRTCSampleTrack(webrtc.DefaultPayloadTypeOpus, "audio", "pion1")
 	if err != nil {
@@ -121,6 +138,24 @@ func (d *Daemon) handleMediaRequest(request model.MediaRequest) {
 		response.Error = &model.Error{Str: err.Error()}
 		return
 	}
+
+	peer := newPeerConnection(media, mediaRoot, pc, opusTrack)
+
+	// Set the handler for ICE connection state
+	// This will notify you when the peer has connected/disconnected
+	pc.OnICEConnectionStateChange(func(connectionState ice.ConnectionState) {
+		if connectionState == ice.ConnectionStateConnected {
+			go peer.stream()
+		}
+
+		if connectionState == ice.ConnectionStateCompleted ||
+			connectionState == ice.ConnectionStateFailed ||
+			connectionState == ice.ConnectionStateDisconnected ||
+			connectionState == ice.ConnectionStateClosed {
+			peer.done <- struct{}{}
+		}
+		log.Info("Daemon: peer connection state changed: %s", connectionState.String())
+	})
 
 	// Wait for the offer to be pasted
 	var offer webrtc.RTCSessionDescription
