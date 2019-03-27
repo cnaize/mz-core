@@ -9,7 +9,7 @@
     "model",
     "util"
   ]
-  revision = "dcb974e6974a10b945bbbe3e16f86af5f9effc88"
+  revision = "c7f6b5b78576e0566257fcb830786be791d51527"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -171,7 +171,7 @@
     "curve25519",
     "ssh/terminal"
   ]
-  revision = "b7391e95e576cacdcdd422573063bc057239113d"
+  revision = "a5d413f7728c81fb97d96a2b722368945f651e78"
 
 [[projects]]
   branch = "master"
@@ -184,7 +184,7 @@
     "ipv4",
     "publicsuffix"
   ]
-  revision = "addf6b3196f61cd44ce5a76657913698c73479d0"
+  revision = "710a502c58a2a4b2d7417a4e24ccb96d8dc13fa3"
 
 [[projects]]
   branch = "master"
@@ -231,6 +231,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3dc7fc434f74aa51f6d9a3f232904dd5f531afd37c2f7d54742869b28f8129cc"
+  inputs-digest = "95844eb07b2e34cc0fd1717d97599e9c31e5eb2c77c2e6dd7f299a470d0e7fb1"
   solver-name = "gps-cdcl"
   solver-version = 1

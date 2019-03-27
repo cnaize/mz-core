@@ -29,8 +29,7 @@ type Media struct {
 }
 
 type MediaList struct {
-	Items         []*Media `json:"items" form:"items"`
-	AllItemsCount *uint    `json:"allItemsCount,omitempty" form:"allItemsCount"`
+	Items []*Media `json:"items" form:"items"`
 }
 
 type MediaRoot struct {

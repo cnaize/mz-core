@@ -11,7 +11,6 @@ import (
 
 func (d *Daemon) RefreshMediaDB() error {
 	db := d.DB
-	user := d.CurrentUser
 
 	if d.stopMediaRefresh != nil {
 		close(d.stopMediaRefresh)
@@ -55,7 +54,7 @@ func (d *Daemon) RefreshMediaDB() error {
 					}
 				}
 
-				rawPath := strings.ToLower(fmt.Sprintf("@%s/%s", user.Username, path[len(root.Dir):]))
+				rawPath := strings.ToLower(path[len(root.Dir):])
 				media := model.Media{
 					Name:        name,
 					Ext:         ext,

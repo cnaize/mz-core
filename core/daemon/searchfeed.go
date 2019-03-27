@@ -47,13 +47,12 @@ func (d *Daemon) handleSearchRequest(request model.SearchRequest) {
 	db := d.DB
 	req := d.baseReq.Clone()
 
-	owner := model.User{
+	self := model.User{
 		Username: d.CurrentUser.Username,
 	}
-
 	request.RawText = util.DecodeInStr(util.ParseInStr(request.Text))
 
-	mediaList, err := db.SearchMedia(request, 0, 1001)
+	mediaList, err := db.SearchMedia(self, request, 0, model.MaxResponseItemsCount)
 	if err != nil {
 		if !db.IsMediaItemNotFound(err) {
 			log.Warn("Daemon: search request handle failed: %+v", err)
@@ -66,14 +65,16 @@ func (d *Daemon) handleSearchRequest(request model.SearchRequest) {
 		return
 	}
 
-	var responseList model.SearchResponseList
+	responseList := model.SearchResponseList{
+		Items: []*model.SearchResponse{},
+	}
 	for _, m := range mediaList.Items {
 		m := *m
 
 		m.CoreSideID = m.ID
 
 		resp := model.SearchResponse{
-			Owner: owner,
+			Owner: self,
 			Media: m,
 		}
 

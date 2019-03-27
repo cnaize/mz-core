@@ -10,7 +10,7 @@ type MediaProvider interface {
 	GetMediaByID(id uint) (model.Media, error)
 	AddMedia(media model.Media) error
 
-	SearchMedia(request model.SearchRequest, offset, count uint) (model.MediaList, error)
+	SearchMedia(self model.User, request model.SearchRequest, offset, count uint) (model.MediaList, error)
 	RemoveAllMedia() error
 
 	GetMediaRootByID(id uint) (model.MediaRoot, error)

@@ -25,7 +25,7 @@ func (db *DB) AddMedia(media model.Media) error {
 	return db.db.Create(&media).Error
 }
 
-func (db *DB) SearchMedia(request model.SearchRequest, offset, count uint) (model.MediaList, error) {
+func (db *DB) SearchMedia(self model.User, request model.SearchRequest, offset, count uint) (model.MediaList, error) {
 	db.Lock()
 	defer db.Unlock()
 
@@ -34,11 +34,34 @@ func (db *DB) SearchMedia(request model.SearchRequest, offset, count uint) (mode
 	if len(searchFields) < 1 {
 		return res, nil
 	}
-	if strings.HasPrefix(searchFields[0], "@") {
-		searchFields[0] = searchFields[0] + "/"
+
+	// handle "..., @username, ..., @username, ..."
+	var users []string
+	var words []string
+	for _, f := range searchFields {
+		if strings.HasPrefix(f, "@") {
+			users = append(users, f[1:])
+		} else {
+			words = append(words, f)
+		}
 	}
 
-	search := fmt.Sprintf("%%%s%%", strings.Join(searchFields, "%"))
+	if len(users) > 0 {
+		var selfFound bool
+		for _, u := range users {
+			if u == strings.ToLower(self.Username) {
+				selfFound = true
+				break
+			}
+		}
+
+		if !selfFound {
+			return res, nil
+		}
+	}
+
+
+	search := fmt.Sprintf("%%%s%%", strings.Join(words, "%"))
 	modes := []model.MediaAccessType{request.Mode}
 	// "protected" includes "public, "private" includes "public" and "protected"
 	if request.Mode == model.MediaAccessTypeProtected || request.Mode == model.MediaAccessTypePrivate {
@@ -55,8 +78,6 @@ func (db *DB) SearchMedia(request model.SearchRequest, offset, count uint) (mode
 	if err := query.Offset(offset).Limit(count).Find(&res.Items).Error; err != nil {
 		return res, err
 	}
-
-	query.Model(&model.Media{}).Count(&res.AllItemsCount)
 
 	return res, nil
 }
