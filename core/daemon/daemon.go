@@ -35,7 +35,7 @@ func New(config Config, db db.DB) *Daemon {
 func (d *Daemon) Run() error {
 	log.Info("MuzeZone Core: running daemon")
 
-	d.baseReq = gorequest.New().Timeout(500 * time.Millisecond)
+	d.baseReq = gorequest.New().Timeout(time.Second)
 
 	//if err := d.loadSettings(); err != nil {
 	//	if err := d.saveSettings(); err != nil {
