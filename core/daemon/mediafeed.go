@@ -1,13 +1,9 @@
 package daemon
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/cnaize/mz-common/log"
 	"github.com/cnaize/mz-common/model"
-	"github.com/cnaize/mz-common/util"
-	"github.com/pions/webrtc"
-	"github.com/pions/webrtc/pkg/ice"
 	"net/http"
 	"time"
 )
@@ -87,13 +83,13 @@ func (d *Daemon) handleMediaRequest(request model.MediaRequest) {
 		response.Error = &model.Error{Str: err.Error()}
 		return
 	}
+
 	mediaRoot, err := db.GetMediaRootByID(media.MediaRootID)
 	if err != nil {
 		log.Error("Daemon: media request handle failed: %+v", err)
 		response.Error = &model.Error{Str: err.Error()}
 		return
 	}
-
 	if request.Mode != mediaRoot.AccessType {
 		errStr := fmt.Sprintf("request mode and media root access type mismatch: %s != %s",
 			request.Mode, mediaRoot.AccessType)
@@ -102,89 +98,12 @@ func (d *Daemon) handleMediaRequest(request model.MediaRequest) {
 		return
 	}
 
-	// Setup the codecs you want to use.
-	// We'll use the default ones but you can also define your own
-	webrtc.RegisterDefaultCodecs()
+	pc := newPeerConnection(media, mediaRoot)
 
-	// Prepare the configuration
-	config := webrtc.RTCConfiguration{
-		IceServers: []webrtc.RTCIceServer{
-			{URLs: []string{"stun:stun.l.google.com:19302"}},
-			{URLs: []string{"stun:stun1.l.google.com:19302"}},
-			{URLs: []string{"stun:stun2.l.google.com:19302"}},
-			{URLs: []string{"stun:stun3.l.google.com:19302"}},
-			{URLs: []string{"stun:stun4.l.google.com:19302"}},
-		},
-	}
-
-	// Create a new RTCPeerConnection
-	pc, err := webrtc.New(config)
+	response.WebRTCKey, err = pc.Open(request.WebRTCKey)
 	if err != nil {
 		log.Error("Daemon: media request handle failed: %+v", err)
 		response.Error = &model.Error{Str: err.Error()}
 		return
 	}
-
-	// Create a audio track
-	opusTrack, err := pc.NewRTCSampleTrack(webrtc.DefaultPayloadTypeOpus, "audio", "pion1")
-	if err != nil {
-		log.Error("Daemon: media request handle failed: %+v", err)
-		response.Error = &model.Error{Str: err.Error()}
-		return
-	}
-	_, err = pc.AddTrack(opusTrack)
-	if err != nil {
-		log.Error("Daemon: media request handle failed: %+v", err)
-		response.Error = &model.Error{Str: err.Error()}
-		return
-	}
-
-	peer := newPeerConnection(media, mediaRoot, pc, opusTrack)
-
-	// Set the handler for ICE connection state
-	// This will notify you when the peer has connected/disconnected
-	pc.OnICEConnectionStateChange(func(connectionState ice.ConnectionState) {
-		if connectionState == ice.ConnectionStateConnected {
-			go peer.stream()
-		}
-
-		if connectionState == ice.ConnectionStateCompleted ||
-			connectionState == ice.ConnectionStateFailed ||
-			connectionState == ice.ConnectionStateDisconnected ||
-			connectionState == ice.ConnectionStateClosed {
-			peer.done <- struct{}{}
-		}
-		log.Info("Daemon: peer connection state changed: %s", connectionState.String())
-	})
-
-	// Wait for the offer to be pasted
-	var offer webrtc.RTCSessionDescription
-	if err := json.Unmarshal([]byte(util.DecodeInStr(request.WebRTCKey)), &offer); err != nil {
-		log.Error("Daemon: media request handle failed: %+v", err)
-		response.Error = &model.Error{Str: err.Error()}
-		return
-	}
-
-	// Set the remote SessionDescription
-	if err := pc.SetRemoteDescription(offer); err != nil {
-		log.Error("Daemon: media request handle failed: %+v", err)
-		response.Error = &model.Error{Str: err.Error()}
-		return
-	}
-
-	// Sets the LocalDescription, and starts our UDP listeners
-	answer, err := pc.CreateAnswer(nil)
-	if err != nil {
-		log.Error("Daemon: media request handle failed: %+v", err)
-		response.Error = &model.Error{Str: err.Error()}
-		return
-	}
-	webRTCKey, err := json.Marshal(&answer)
-	if err != nil {
-		log.Error("Daemon: media request handle failed: %+v", err)
-		response.Error = &model.Error{Str: err.Error()}
-		return
-	}
-
-	response.WebRTCKey = util.EncodeOutStr(string(webRTCKey))
 }
